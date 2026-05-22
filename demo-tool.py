@@ -241,6 +241,14 @@ for p in st.session_state.passes:
         reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
 
         # Yield percentage based on sample analysis only
+
+        # Estimated weights using mass balance stream weights
+        estimated_good_in_input_g = input_weight * (input_good_pct / 100)
+        estimated_defect_in_input_g = input_weight * (input_defect_pct / 100)
+
+        estimated_good_in_accept_g = accept_weight * (accept_good_pct / 100)
+        estimated_good_lost_to_reject_g = reject_weight * (reject_good_pct / 100)
+
         good_product_yield_pct = (
             estimated_good_in_accept_g / estimated_good_in_input_g
             if estimated_good_in_input_g
@@ -252,13 +260,6 @@ for p in st.session_state.passes:
             if estimated_good_in_input_g
             else 0
         )
-
-        # Estimated weights using mass balance stream weights
-        estimated_good_in_input_g = input_weight * (input_good_pct / 100)
-        estimated_defect_in_input_g = input_weight * (input_defect_pct / 100)
-
-        estimated_good_in_accept_g = accept_weight * (accept_good_pct / 100)
-        estimated_good_lost_to_reject_g = reject_weight * (reject_good_pct / 100)
 
         st.subheader("Yield Analysis")
 
