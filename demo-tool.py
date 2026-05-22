@@ -163,7 +163,7 @@ for p in st.session_state.passes:
         m1.metric("Mass Balance", f"{mass_balance_pct:.2f}%")
         m2.metric("Accept Yield", f"{accept_yield_pct:.2f}%")
         m3.metric("Reject %", f"{reject_pct:.2f}%")
-        m4.metric("Throughput", f"{throughput_lbs_hr:.2f} lb/hr")
+        m4.metric("Throughput", f"{throughput_lbs_hr:,.2f} lb/hr")
 
         st.subheader("Sample Analysis")
 
