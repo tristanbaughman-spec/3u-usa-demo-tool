@@ -16,7 +16,6 @@ with logo_col:
     try:
         st.image("assets/3U-Vision-USAdarksilhouette.png", width=200)
 
-
 # -----------------------------
 # Session State
 # -----------------------------
