@@ -13,8 +13,7 @@ with title_col:
     st.title("3U USA Demo Tool")
 
 with logo_col:
-    try:
-        st.image("assets/3U-Vision-USAdarksilhouette.png", width=200)
+    st.image("assets/3U-Vision-USAdarksilhouette.png", width=200)
 
 # -----------------------------
 # Session State
