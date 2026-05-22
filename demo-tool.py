@@ -234,48 +234,83 @@ for p in st.session_state.passes:
                         "Percent of Sample": percent,
                     })
 
-        input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0)
-        input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
+        # -----------------------------
+# Yield Analysis
+# Using:
+# A = T × (Gi - Gr) / (Ga - Gr)
+# -----------------------------
 
-        accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
-        reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
+    input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0)
+    input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
 
-        # Yield percentage based on sample analysis only
+    accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
+    reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
 
-        # Estimated weights using mass balance stream weights
-        estimated_good_in_input_g = input_weight * (input_good_pct / 100)
-        estimated_defect_in_input_g = input_weight * (input_defect_pct / 100)
+    # Convert to decimals
+    Gi = input_good_pct / 100
+    Ga = accept_good_pct / 100
+    Gr = reject_good_pct / 100
 
-        estimated_good_in_accept_g = accept_weight * (accept_good_pct / 100)
-        estimated_good_lost_to_reject_g = reject_weight * (reject_good_pct / 100)
+    T = input_weight
 
-        good_product_yield_pct = (
-            estimated_good_in_accept_g / estimated_good_in_input_g
-            if estimated_good_in_input_g
-            else 0
-        )
+    # Estimated stream split from assays
+    if Ga != Gr and T > 0:
+        estimated_accept_stream_g = T * ((Gi - Gr) / (Ga - Gr))
+    else:
+        estimated_accept_stream_g = 0
 
-        good_product_loss_pct = (
-            estimated_good_lost_to_reject_g / estimated_good_in_input_g * 100
-            if estimated_good_in_input_g
-            else 0
-        )
+    estimated_reject_stream_g = T - estimated_accept_stream_g
 
-        st.subheader("Yield Analysis")
+    # Estimated good product weights
+    estimated_good_in_input_g = T * Gi
+    estimated_good_in_accept_g = estimated_accept_stream_g * Ga
+    estimated_good_lost_to_reject_g = estimated_reject_stream_g * Gr
 
-        y1, y2, y3, y4 = st.columns(4)
+    # Estimated defect weights
+    estimated_defect_in_accept_g = estimated_accept_stream_g * (1 - Ga)
+    estimated_defect_in_reject_g = estimated_reject_stream_g * (1 - Gr)
 
-        y1.metric("Good Product Yield", f"{good_product_yield_pct:.2f}%")
-        y2.metric("Good Product Loss", f"{good_product_loss_pct:.2f}%")
-        y3.metric("Est. Good in Input", f"{estimated_good_in_input_g:.2f} g")
-        y4.metric("Est. Good in Accept", f"{estimated_good_in_accept_g:.2f} g")
+    # Recovery / loss
+    good_product_yield_pct = (
+        estimated_good_in_accept_g / estimated_good_in_input_g * 100
+        if estimated_good_in_input_g
+        else 0
+    )
 
-        y5, y6, y7, y8 = st.columns(4)
+    good_product_loss_pct = (
+        estimated_good_lost_to_reject_g / estimated_good_in_input_g * 100
+        if estimated_good_in_input_g
+        else 0
+    )
 
-        y5.metric("Input Good %", f"{input_good_pct:.2f}%")
-        y6.metric("Input Defect %", f"{input_defect_pct:.2f}%")
-        y7.metric("Accept Good %", f"{accept_good_pct:.2f}%")
-        y8.metric("Reject Good %", f"{reject_good_pct:.2f}%")
+    unaccounted_pct = (
+        100
+        - good_product_yield_pct
+        - good_product_loss_pct
+    )
+
+    st.subheader("Yield Analysis")
+
+    y1, y2, y3, y4 = st.columns(4)
+
+    y1.metric("Good Product Yield", f"{good_product_yield_pct:.2f}%")
+    y2.metric("Good Product Loss", f"{good_product_loss_pct:.2f}%")
+    y3.metric("Unaccounted", f"{unaccounted_pct:.2f}%")
+    y4.metric("Est. Accept Stream", f"{estimated_accept_stream_g:.2f} g")
+
+    y5, y6, y7, y8 = st.columns(4)
+
+    y5.metric("Est. Reject Stream", f"{estimated_reject_stream_g:.2f} g")
+    y6.metric("Est. Good in Input", f"{estimated_good_in_input_g:.2f} g")
+    y7.metric("Est. Good in Accept", f"{estimated_good_in_accept_g:.2f} g")
+    y8.metric("Est. Good Lost", f"{estimated_good_lost_to_reject_g:.2f} g")
+
+    y9, y10, y11, y12 = st.columns(4)
+
+    y9.metric("Input Good %", f"{input_good_pct:.2f}%")
+    y10.metric("Accept Good %", f"{accept_good_pct:.2f}%")
+    y11.metric("Reject Good %", f"{reject_good_pct:.2f}%")
+    y12.metric("Input Defect %", f"{input_defect_pct:.2f}%")
 
         pass_notes = st.text_area("Pass Notes", key=f"pass_notes_{pass_id}")
 
