@@ -241,109 +241,164 @@ for p in st.session_state.passes:
                         else 0
                     )
 
-
+###
         # -----------------------------
-# Yield Analysis
-# Using:
-# A = T × (Gi - Gr) / (Ga - Gr)
-# -----------------------------
+        # Yield Analysis
+        # -----------------------------
 
-    input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0)
-input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
-accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
-reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
+        input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0)
+        input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
 
-yield_results = calculate_yield(
-    input_weight,
-    input_good_pct,
-    accept_good_pct,
-    reject_good_pct
-)
+        accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
+        reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
 
-st.subheader("Yield Analysis")
+        yield_results = calculate_yield(
+            input_weight,
+            input_good_pct,
+            accept_good_pct,
+            reject_good_pct
+        )
 
-if yield_results is None:
-    st.warning("Enter valid Input, Accept, and Reject good percentages to calculate yield.")
-else:
-    good_product_yield_pct = yield_results["yield_pct"]
-    good_product_loss_pct = yield_results["loss_pct"]
+        st.subheader("Yield Analysis")
 
-    estimated_accept_stream_g = yield_results["accept_flow"]
-    estimated_reject_stream_g = yield_results["reject_flow"]
-    estimated_good_in_input_g = yield_results["good_in_input"]
-    estimated_good_in_accept_g = yield_results["good_in_accept"]
-    estimated_good_lost_to_reject_g = yield_results["good_lost_to_reject"]
+        if yield_results is None:
 
-    unaccounted_pct = (
-        100
-        - good_product_yield_pct
-        - good_product_loss_pct
-    )
+            st.warning(
+                "Enter valid Input, Accept, and Reject good percentages to calculate yield."
+            )
 
-    y1, y2, y3, y4 = st.columns(4)
+        else:
 
-    y1.metric("Good Product Yield", f"{good_product_yield_pct:.2f}%")
-    y2.metric("Good Product Loss", f"{good_product_loss_pct:.2f}%")
-    y3.metric("Unaccounted", f"{unaccounted_pct:.2f}%")
-    y4.metric("Est. Accept Stream", f"{estimated_accept_stream_g:.2f} g")
+            good_product_yield_pct = yield_results["yield_pct"]
+            good_product_loss_pct = yield_results["loss_pct"]
 
-    y5, y6, y7, y8 = st.columns(4)
+            estimated_accept_stream_g = yield_results["accept_flow"]
+            estimated_reject_stream_g = yield_results["reject_flow"]
 
-    y5.metric("Est. Reject Stream", f"{estimated_reject_stream_g:.2f} g")
-    y6.metric("Est. Good in Input", f"{estimated_good_in_input_g:.2f} g")
-    y7.metric("Est. Good in Accept", f"{estimated_good_in_accept_g:.2f} g")
-    y8.metric("Est. Good Lost", f"{estimated_good_lost_to_reject_g:.2f} g")
+            estimated_good_in_input_g = yield_results["good_in_input"]
+            estimated_good_in_accept_g = yield_results["good_in_accept"]
+            estimated_good_lost_to_reject_g = yield_results["good_lost_to_reject"]
 
-    y9, y10, y11, y12 = st.columns(4)
+            unaccounted_pct = (
+                100
+                - good_product_yield_pct
+                - good_product_loss_pct
+            )
 
-    y9.metric("Input Good %", f"{input_good_pct:.2f}%")
-    y10.metric("Accept Good %", f"{accept_good_pct:.2f}%")
-    y11.metric("Reject Good %", f"{reject_good_pct:.2f}%")
-    y12.metric("Input Defect %", f"{input_defect_pct:.2f}%")
-# -----------------------------
-# Summary + Download
-# -----------------------------
-export_rows.append({
-    "Customer": customer,
-    "Product": product,
-    "Machine": machine,
-    "Calibration": calibration,
-    "Operator": operator,
-    "Date": demo_date,
+            y1, y2, y3, y4 = st.columns(4)
 
-    "Pass Name": pass_name,
-    "Pass Type": pass_type,
+            y1.metric(
+                "Good Product Yield",
+                f"{good_product_yield_pct:.2f}%"
+            )
 
-    "Input Weight g": input_weight,
-    "Accept Weight g": accept_weight,
-    "Reject Weight g": reject_weight,
+            y2.metric(
+                "Good Product Loss",
+                f"{good_product_loss_pct:.2f}%"
+            )
 
-    "Runtime sec": runtime_sec,
-    "Throughput lb/hr": throughput_lbs_hr,
+            y3.metric(
+                "Unaccounted",
+                f"{unaccounted_pct:.2f}%"
+            )
 
-    "Mass Balance %": mass_balance_pct,
-    "Accept Stream Yield %": accept_stream_yield_pct,
-    "Reject Stream %": reject_stream_pct,
+            y4.metric(
+                "Est. Accept Stream",
+                f"{estimated_accept_stream_g:.2f} g"
+            )
 
-    "Input Good %": input_good_pct,
-    "Input Defect %": input_defect_pct,
+            y5, y6, y7, y8 = st.columns(4)
 
-    "Accept Good %": accept_good_pct,
-    "Reject Good %": reject_good_pct,
+            y5.metric(
+                "Est. Reject Stream",
+                f"{estimated_reject_stream_g:.2f} g"
+            )
 
-    "Estimated Accept Stream g": estimated_accept_stream_g,
-    "Estimated Reject Stream g": estimated_reject_stream_g,
+            y6.metric(
+                "Est. Good in Input",
+                f"{estimated_good_in_input_g:.2f} g"
+            )
 
-    "Estimated Good in Input g": estimated_good_in_input_g,
-    "Estimated Good in Accept g": estimated_good_in_accept_g,
-    "Estimated Good Lost g": estimated_good_lost_to_reject_g,
+            y7.metric(
+                "Est. Good in Accept",
+                f"{estimated_good_in_accept_g:.2f} g"
+            )
 
-    "Good Product Yield %": good_product_yield_pct,
-    "Good Product Loss %": good_product_loss_pct,
-    "Unaccounted %": unaccounted_pct,
+            y8.metric(
+                "Est. Good Lost",
+                f"{estimated_good_lost_to_reject_g:.2f} g"
+            )
 
-    "Pass Notes": pass_notes,
-})
+            y9, y10, y11, y12 = st.columns(4)
+
+            y9.metric(
+                "Input Good %",
+                f"{input_good_pct:.2f}%"
+            )
+
+            y10.metric(
+                "Accept Good %",
+                f"{accept_good_pct:.2f}%"
+            )
+
+            y11.metric(
+                "Reject Good %",
+                f"{reject_good_pct:.2f}%"
+            )
+
+            y12.metric(
+                "Input Defect %",
+                f"{input_defect_pct:.2f}%"
+            )
+
+            pass_notes = st.text_area(
+                "Pass Notes",
+                key=f"pass_notes_{pass_id}"
+            )
+
+            export_rows.append({
+
+                "Customer": customer,
+                "Product": product,
+                "Machine": machine,
+                "Calibration": calibration,
+                "Operator": operator,
+                "Date": demo_date,
+
+                "Pass Name": pass_name,
+                "Pass Type": pass_type,
+
+                "Input Weight g": input_weight,
+                "Accept Weight g": accept_weight,
+                "Reject Weight g": reject_weight,
+
+                "Runtime sec": runtime_sec,
+                "Throughput lb/hr": throughput_lbs_hr,
+
+                "Mass Balance %": mass_balance_pct,
+                "Accept Stream Yield %": accept_stream_yield_pct,
+                "Reject Stream %": reject_stream_pct,
+
+                "Input Good %": input_good_pct,
+                "Input Defect %": input_defect_pct,
+
+                "Accept Good %": accept_good_pct,
+                "Reject Good %": reject_good_pct,
+
+                "Estimated Accept Stream g": estimated_accept_stream_g,
+                "Estimated Reject Stream g": estimated_reject_stream_g,
+
+                "Estimated Good in Input g": estimated_good_in_input_g,
+                "Estimated Good in Accept g": estimated_good_in_accept_g,
+                "Estimated Good Lost g": estimated_good_lost_to_reject_g,
+
+                "Good Product Yield %": good_product_yield_pct,
+                "Good Product Loss %": good_product_loss_pct,
+                "Unaccounted %": unaccounted_pct,
+
+                "Pass Notes": pass_notes,
+            })
+###
 
 st.divider()
 st.header("Export Summary")
