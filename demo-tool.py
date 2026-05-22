@@ -10,7 +10,7 @@ st.set_page_config(
 title_col, logo_col = st.columns([5, 1])
 
 with title_col:
-    st.title("3U USA Demo Tool")
+    st.title("3U USA Demo Toolv1")
 
 with logo_col:
     st.image("assets/3U-Vision-USAdarksilhouette.png", width=200)
