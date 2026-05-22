@@ -142,18 +142,20 @@ for p in st.session_state.passes:
             )
 
         with c4:
-            runtime_min = st.number_input(
-                "Runtime (min)",
+            runtime_sec = st.number_input(
+                "Runtime (sec)",
                 min_value=0.0,
                 step=0.1,
                 key=f"runtime_{pass_id}"
             )
 
+        
+        capacity_weight = (input_weight * 0.00220462) if input_weight else 0
         total_output = accept_weight + reject_weight
         mass_balance_pct = (total_output / input_weight * 100) if input_weight else 0
         accept_yield_pct = (accept_weight / input_weight * 100) if input_weight else 0
         reject_pct = (reject_weight / input_weight * 100) if input_weight else 0
-        capacity_lbs_hr = (input_weight * 0.00220462 / runtime_min * 60) if runtime_min else 0
+        capacity_lbs_hr = (capacity_weight / runtime_sec * 60) if runtime_sec else 0
 
         m1, m2, m3, m4 = st.columns(4)
 
