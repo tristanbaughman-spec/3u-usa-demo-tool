@@ -39,7 +39,39 @@ def remove_pass(pass_id):
         p for p in st.session_state.passes if p["id"] != pass_id
     ]
 
+def calculate_yield(input_flow, gi_pct, ga_pct, gr_pct):
+    Gi = gi_pct / 100
+    Ga = ga_pct / 100
+    Gr = gr_pct / 100
 
+    if input_flow <= 0:
+        return None
+
+    if Gi <= 0:
+        return None
+
+    if Ga == Gr:
+        return None
+
+    accept_flow = input_flow * ((Gi - Gr) / (Ga - Gr))
+    reject_flow = input_flow * ((Ga - Gi) / (Ga - Gr))
+
+    good_in_input = Gi * input_flow
+    good_in_accept = Ga * accept_flow
+    good_lost_to_reject = Gr * reject_flow
+
+    yield_pct = (good_in_accept / good_in_input) * 100
+    loss_pct = (good_lost_to_reject / good_in_input) * 100
+
+    return {
+        "accept_flow": accept_flow,
+        "reject_flow": reject_flow,
+        "good_in_input": good_in_input,
+        "good_in_accept": good_in_accept,
+        "good_lost_to_reject": good_lost_to_reject,
+        "yield_pct": yield_pct,
+        "loss_pct": loss_pct,
+    }
 # -----------------------------
 # Demo Info
 # -----------------------------
@@ -241,55 +273,36 @@ for p in st.session_state.passes:
 # -----------------------------
 
     input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0)
-    input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
+input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
+accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
+reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
 
-    accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
-    reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
+yield_results = calculate_yield(
+    input_weight,
+    input_good_pct,
+    accept_good_pct,
+    reject_good_pct
+)
 
-    # Convert to decimals
-    Gi = input_good_pct / 100
-    Ga = accept_good_pct / 100
-    Gr = reject_good_pct / 100
+st.subheader("Yield Analysis")
 
-    T = input_weight
+if yield_results is None:
+    st.warning("Enter valid Input, Accept, and Reject good percentages to calculate yield.")
+else:
+    good_product_yield_pct = yield_results["yield_pct"]
+    good_product_loss_pct = yield_results["loss_pct"]
 
-    # Estimated stream split from assays
-    if Ga != Gr and T > 0:
-        estimated_accept_stream_g = T * ((Gi - Gr) / (Ga - Gr))
-    else:
-        estimated_accept_stream_g = 0
-
-    estimated_reject_stream_g = T - estimated_accept_stream_g
-
-    # Estimated good product weights
-    estimated_good_in_input_g = T * Gi
-    estimated_good_in_accept_g = estimated_accept_stream_g * Ga
-    estimated_good_lost_to_reject_g = estimated_reject_stream_g * Gr
-
-    # Estimated defect weights
-    estimated_defect_in_accept_g = estimated_accept_stream_g * (1 - Ga)
-    estimated_defect_in_reject_g = estimated_reject_stream_g * (1 - Gr)
-
-    # Recovery / loss
-    good_product_yield_pct = (
-        estimated_good_in_accept_g / estimated_good_in_input_g * 100
-        if estimated_good_in_input_g
-        else 0
-    )
-
-    good_product_loss_pct = (
-        estimated_good_lost_to_reject_g / estimated_good_in_input_g * 100
-        if estimated_good_in_input_g
-        else 0
-    )
+    estimated_accept_stream_g = yield_results["accept_flow"]
+    estimated_reject_stream_g = yield_results["reject_flow"]
+    estimated_good_in_input_g = yield_results["good_in_input"]
+    estimated_good_in_accept_g = yield_results["good_in_accept"]
+    estimated_good_lost_to_reject_g = yield_results["good_lost_to_reject"]
 
     unaccounted_pct = (
         100
         - good_product_yield_pct
         - good_product_loss_pct
     )
-
-    st.subheader("Yield Analysis")
 
     y1, y2, y3, y4 = st.columns(4)
 
@@ -311,18 +324,6 @@ for p in st.session_state.passes:
     y10.metric("Accept Good %", f"{accept_good_pct:.2f}%")
     y11.metric("Reject Good %", f"{reject_good_pct:.2f}%")
     y12.metric("Input Defect %", f"{input_defect_pct:.2f}%")
-
-    pass_notes = st.text_area("Pass Notes", key=f"pass_notes_{pass_id}")
-
-    for row in export_rows:
-        if row["Pass Name"] == pass_name:
-            row["Pass Notes"] = pass_notes
-            row["Good Product Yield %"] = good_product_yield_pct
-            row["Good Product Loss %"] = good_product_loss_pct
-            row["Estimated Good in Input g"] = estimated_good_in_input_g
-            row["Estimated Good in Accept g"] = estimated_good_in_accept_g
-            row["Estimated Good Lost to Reject g"] = estimated_good_lost_to_reject_g
-
 # -----------------------------
 # Summary + Download
 # -----------------------------
