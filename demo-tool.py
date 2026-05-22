@@ -151,18 +151,19 @@ for p in st.session_state.passes:
 
         
         capacity_weight = (input_weight * 0.00220462) if input_weight else 0
+        throughput_lbs_hr = ((capacity_weight / runtime_sec) * 3600 * 0.00220462) if runtime_sec else 0
+
         total_output = accept_weight + reject_weight
         mass_balance_pct = (total_output / input_weight * 100) if input_weight else 0
         accept_yield_pct = (accept_weight / input_weight * 100) if input_weight else 0
         reject_pct = (reject_weight / input_weight * 100) if input_weight else 0
-        capacity_lbs_hr = (capacity_weight / runtime_sec * 60) if runtime_sec else 0
 
         m1, m2, m3, m4 = st.columns(4)
 
         m1.metric("Mass Balance", f"{mass_balance_pct:.2f}%")
         m2.metric("Accept Yield", f"{accept_yield_pct:.2f}%")
         m3.metric("Reject %", f"{reject_pct:.2f}%")
-        m4.metric("Capacity", f"{capacity_lbs_hr:.2f} lb/hr")
+        m4.metric("Throughput", f"{throughput_lbs_hr:.2f} lb/hr")
 
         st.subheader("Sample Analysis")
 
@@ -224,12 +225,12 @@ for p in st.session_state.passes:
                         "Input Weight g": input_weight,
                         "Accept Weight g": accept_weight,
                         "Reject Weight g": reject_weight,
-                        "Runtime min": runtime_min,
+                        "Runtime sec": runtime_sec,
                         "Total Output g": total_output,
                         "Mass Balance %": mass_balance_pct,
                         "Accept Yield %": accept_yield_pct,
                         "Reject %": reject_pct,
-                        "Capacity lb/hr": capacity_lbs_hr,
+                        "Throughput lb/hr": throughput_lbs_hr,
                         "Stream": stream,
                         "Defect / Class": row["defect"],
                         "Weight g": row["weight_g"],
