@@ -242,14 +242,14 @@ for p in st.session_state.passes:
 
         # Yield percentage based on sample analysis only
         good_product_yield_pct = (
-            accept_good_pct / input_good_pct * 100
-            if input_good_pct
+            estimated_good_in_accept_g / estimated_good_in_input_g
+            if estimated_good_in_input_g
             else 0
         )
 
         good_product_loss_pct = (
-            reject_good_pct / input_good_pct * 100
-            if input_good_pct
+            estimated_good_lost_to_reject_g / estimated_good_in_input_g * 100
+            if estimated_good_in_input_g
             else 0
         )
 
