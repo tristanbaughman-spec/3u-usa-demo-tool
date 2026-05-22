@@ -312,16 +312,16 @@ for p in st.session_state.passes:
     y11.metric("Reject Good %", f"{reject_good_pct:.2f}%")
     y12.metric("Input Defect %", f"{input_defect_pct:.2f}%")
 
-        pass_notes = st.text_area("Pass Notes", key=f"pass_notes_{pass_id}")
+    pass_notes = st.text_area("Pass Notes", key=f"pass_notes_{pass_id}")
 
-        for row in export_rows:
-            if row["Pass Name"] == pass_name:
-                row["Pass Notes"] = pass_notes
-                row["Good Product Yield %"] = good_product_yield_pct
-                row["Good Product Loss %"] = good_product_loss_pct
-                row["Estimated Good in Input g"] = estimated_good_in_input_g
-                row["Estimated Good in Accept g"] = estimated_good_in_accept_g
-                row["Estimated Good Lost to Reject g"] = estimated_good_lost_to_reject_g
+    for row in export_rows:
+        if row["Pass Name"] == pass_name:
+            row["Pass Notes"] = pass_notes
+            row["Good Product Yield %"] = good_product_yield_pct
+            row["Good Product Loss %"] = good_product_loss_pct
+            row["Estimated Good in Input g"] = estimated_good_in_input_g
+            row["Estimated Good in Accept g"] = estimated_good_in_accept_g
+            row["Estimated Good Lost to Reject g"] = estimated_good_lost_to_reject_g
 
 # -----------------------------
 # Summary + Download
