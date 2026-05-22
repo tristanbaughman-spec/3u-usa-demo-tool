@@ -258,6 +258,35 @@ for tab, stream in zip(tabs, stream_names):
                 "Percent of Sample": percent,
             })
 
+###Yield Summary
+input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0) / 100
+accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0) / 100
+reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0) / 100
+
+input_good_mass = input_weight * input_good_pct
+accept_good_mass = accept_weight * accept_good_pct
+reject_good_mass = reject_weight * reject_good_pct
+
+good_product_yield_pct = (
+    accept_good_mass / input_good_mass * 100
+    if input_good_mass
+    else 0
+)
+
+good_product_loss_pct = (
+    reject_good_mass / input_good_mass * 100
+    if input_good_mass
+    else 0
+)
+
+st.subheader("Yield Analysis")
+
+y1, y2, y3, y4 = st.columns(4)
+
+y1.metric("Good Product Yield", f"{good_product_yield_pct:.2f}%")
+y2.metric("Good Product Loss", f"{good_product_loss_pct:.2f}%")
+y3.metric("Good Mass In Input", f"{input_good_mass:.2f} g")
+y4.metric("Good Mass In Accept", f"{accept_good_mass:.2f} g")
 
 # -----------------------------
 # Summary + Download
