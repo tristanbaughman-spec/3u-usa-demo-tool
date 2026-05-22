@@ -118,175 +118,174 @@ for p in st.session_state.passes:
         c1, c2, c3, c4 = st.columns(4)
 
         with c1:
-            input_weight = st.number_input(
-                "Input Weight (g)",
-                min_value=0.0,
-                step=0.01,
-                key=f"input_weight_{pass_id}"
-            )
-
+            input_weight = st.number_input("Input Weight (g)", min_value=0.0, step=0.01, key=f"input_weight_{pass_id}")
         with c2:
-            accept_weight = st.number_input(
-                "Accept Weight (g)",
-                min_value=0.0,
-                step=0.01,
-                key=f"accept_weight_{pass_id}"
-            )
-
+            accept_weight = st.number_input("Accept Weight (g)", min_value=0.0, step=0.01, key=f"accept_weight_{pass_id}")
         with c3:
-            reject_weight = st.number_input(
-                "Reject Weight (g)",
-                min_value=0.0,
-                step=0.01,
-                key=f"reject_weight_{pass_id}"
-            )
-
+            reject_weight = st.number_input("Reject Weight (g)", min_value=0.0, step=0.01, key=f"reject_weight_{pass_id}")
         with c4:
-            runtime_sec = st.number_input(
-                "Runtime (sec)",
-                min_value=0.0,
-                step=0.1,
-                key=f"runtime_{pass_id}"
-            )
-
-        
-        capacity_weight = (input_weight * 0.00220462) if input_weight else 0
-        throughput_lbs_hr = ((capacity_weight / runtime_sec) * 3600) if runtime_sec else 0
+            runtime_sec = st.number_input("Runtime (sec)", min_value=0.0, step=0.1, key=f"runtime_{pass_id}")
 
         total_output = accept_weight + reject_weight
         mass_balance_pct = (total_output / input_weight * 100) if input_weight else 0
-        accept_yield_pct = (accept_weight / input_weight * 100) if input_weight else 0
-        reject_pct = (reject_weight / input_weight * 100) if input_weight else 0
+        accept_stream_yield_pct = (accept_weight / input_weight * 100) if input_weight else 0
+        reject_stream_pct = (reject_weight / input_weight * 100) if input_weight else 0
+        throughput_lbs_hr = ((input_weight * 0.00220462) / runtime_sec * 3600) if runtime_sec else 0
 
         m1, m2, m3, m4 = st.columns(4)
-
         m1.metric("Mass Balance", f"{mass_balance_pct:.2f}%")
-        m2.metric("Accept Stream Yield", f"{accept_yield_pct:.2f}%")
-        m3.metric("Reject %", f"{reject_pct:.2f}%")
+        m2.metric("Accept Stream Yield", f"{accept_stream_yield_pct:.2f}%")
+        m3.metric("Reject Stream %", f"{reject_stream_pct:.2f}%")
         m4.metric("Throughput", f"{throughput_lbs_hr:,.2f} lb/hr")
 
         st.subheader("Sample Analysis")
 
         tabs = st.tabs(["Input", "Accept", "Reject"])
-
         stream_names = ["Input", "Accept", "Reject"]
-
         stream_summaries = {}
 
-    for tab, stream in zip(tabs, stream_names):
-        with tab:
-            st.write(f"{stream} Stream")
+        for tab, stream in zip(tabs, stream_names):
+            with tab:
+                st.write(f"{stream} Stream")
 
-            defect_rows = []
+                defect_rows = []
 
-            for i in range(1, 8):
-                d1, d2 = st.columns([3, 1])
+                for i in range(1, 8):
+                    d1, d2 = st.columns([3, 1])
 
-                with d1:
-                    defect_name = st.text_input(
-                        f"Defect / Class {i}",
-                        value="Accept" if i == 1 else "",
-                        key=f"{stream}_defect_name_{pass_id}_{i}"
-                    )
+                    with d1:
+                        defect_name = st.text_input(
+                            f"Defect / Class {i}",
+                            value="Accept" if i == 1 else "",
+                            key=f"{stream}_defect_name_{pass_id}_{i}"
+                        )
 
-                with d2:
-                    defect_weight = st.number_input(
-                        "Weight (g)",
-                        min_value=0.0,
-                        step=0.01,
-                        key=f"{stream}_defect_weight_{pass_id}_{i}"
-                    )
+                    with d2:
+                        defect_weight = st.number_input(
+                            "Weight (g)",
+                            min_value=0.0,
+                            step=0.01,
+                            key=f"{stream}_defect_weight_{pass_id}_{i}"
+                        )
 
-                if defect_name or defect_weight > 0:
-                    defect_rows.append({
-                        "defect": defect_name,
-                        "weight_g": defect_weight
-                    })
+                    if defect_name or defect_weight > 0:
+                        defect_rows.append({
+                            "defect": defect_name,
+                            "weight_g": defect_weight
+                        })
 
-            total_sample_weight = sum(row["weight_g"] for row in defect_rows)
+                total_sample_weight = sum(row["weight_g"] for row in defect_rows)
 
-            good_weight = sum(
-                row["weight_g"]
-                for row in defect_rows
-                if row["defect"].strip().lower() == "accept"
-            )
+                good_sample_weight = sum(
+                    row["weight_g"]
+                    for row in defect_rows
+                    if row["defect"].strip().lower() == "accept"
+                )
 
-            good_pct = (
-                good_weight / total_sample_weight * 100
-                if total_sample_weight
-                else 0
-            )
+                defect_sample_weight = total_sample_weight - good_sample_weight
 
-            stream_summaries[stream] = {
-                "total_sample_weight": total_sample_weight,
-                "good_weight": good_weight,
-                "good_pct": good_pct
-            }
-
-            st.write(f"Total Sample Weight: **{total_sample_weight:.2f} g**")
-            st.write(f"Good Product %: **{good_pct:.2f}%**")
-
-            for row in defect_rows:
-                percent = (
-                    row["weight_g"] / total_sample_weight * 100
+                good_pct = (
+                    good_sample_weight / total_sample_weight * 100
                     if total_sample_weight
                     else 0
                 )
 
-                export_rows.append({
-                    "Customer": customer,
-                    "Product": product,
-                    "Machine": machine,
-                    "Calibration": calibration,
-                    "Operator": operator,
-                    "Date": demo_date,
-                    "General Notes": general_notes,
-                    "Pass Name": pass_name,
-                    "Pass Type": pass_type,
-                    "Input Weight g": input_weight,
-                    "Accept Weight g": accept_weight,
-                    "Reject Weight g": reject_weight,
-                    "Runtime sec": runtime_sec,
-                    "Total Output g": total_output,
-                    "Mass Balance %": mass_balance_pct,
-                    "Accept Yield %": accept_yield_pct,
-                    "Reject %": reject_pct,
-                    "Throughput lb/hr": throughput_lbs_hr,
-                    "Stream": stream,
-                    "Defect / Class": row["defect"],
-                    "Weight g": row["weight_g"],
-                    "Percent of Sample": percent,
-                })
+                defect_pct = 100 - good_pct if total_sample_weight else 0
 
-    ###Yield Summary
-    input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0) / 100
-    accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0) / 100
-    reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0) / 100
+                stream_summaries[stream] = {
+                    "total_sample_weight": total_sample_weight,
+                    "good_pct": good_pct,
+                    "defect_pct": defect_pct
+                }
 
-    input_good_mass = input_weight * input_good_pct
-    accept_good_mass = accept_weight * accept_good_pct
-    reject_good_mass = reject_weight * reject_good_pct
+                st.write(f"Total Sample Weight: **{total_sample_weight:.2f} g**")
+                st.write(f"Good Product %: **{good_pct:.2f}%**")
+                st.write(f"Defect Product %: **{defect_pct:.2f}%**")
 
-    good_product_yield_pct = (
-        accept_good_mass / input_good_mass * 100
-        if input_good_mass
-        else 0
-    )
+                for row in defect_rows:
+                    percent = (
+                        row["weight_g"] / total_sample_weight * 100
+                        if total_sample_weight
+                        else 0
+                    )
 
-    good_product_loss_pct = (
-        reject_good_mass / input_good_mass * 100
-        if input_good_mass
-        else 0
-    )
+                    export_rows.append({
+                        "Customer": customer,
+                        "Product": product,
+                        "Machine": machine,
+                        "Calibration": calibration,
+                        "Operator": operator,
+                        "Date": demo_date,
+                        "General Notes": general_notes,
+                        "Pass Name": pass_name,
+                        "Pass Type": pass_type,
+                        "Input Weight g": input_weight,
+                        "Accept Weight g": accept_weight,
+                        "Reject Weight g": reject_weight,
+                        "Runtime sec": runtime_sec,
+                        "Total Output g": total_output,
+                        "Mass Balance %": mass_balance_pct,
+                        "Accept Stream Yield %": accept_stream_yield_pct,
+                        "Reject Stream %": reject_stream_pct,
+                        "Throughput lb/hr": throughput_lbs_hr,
+                        "Stream": stream,
+                        "Defect / Class": row["defect"],
+                        "Weight g": row["weight_g"],
+                        "Percent of Sample": percent,
+                    })
 
-    st.subheader("Yield Analysis")
+        input_good_pct = stream_summaries.get("Input", {}).get("good_pct", 0)
+        input_defect_pct = stream_summaries.get("Input", {}).get("defect_pct", 0)
 
-    y1, y2, y3, y4 = st.columns(4)
+        accept_good_pct = stream_summaries.get("Accept", {}).get("good_pct", 0)
+        reject_good_pct = stream_summaries.get("Reject", {}).get("good_pct", 0)
 
-    y1.metric("Good Product Yield", f"{good_product_yield_pct:.2f}%")
-    y2.metric("Good Product Loss", f"{good_product_loss_pct:.2f}%")
-    y3.metric("Good Mass In Input", f"{input_good_mass:.2f} g")
-    y4.metric("Good Mass In Accept", f"{accept_good_mass:.2f} g")
+        # Yield percentage based on sample analysis only
+        good_product_yield_pct = (
+            accept_good_pct / input_good_pct * 100
+            if input_good_pct
+            else 0
+        )
+
+        good_product_loss_pct = (
+            reject_good_pct / input_good_pct * 100
+            if input_good_pct
+            else 0
+        )
+
+        # Estimated weights using mass balance stream weights
+        estimated_good_in_input_g = input_weight * (input_good_pct / 100)
+        estimated_defect_in_input_g = input_weight * (input_defect_pct / 100)
+
+        estimated_good_in_accept_g = accept_weight * (accept_good_pct / 100)
+        estimated_good_lost_to_reject_g = reject_weight * (reject_good_pct / 100)
+
+        st.subheader("Yield Analysis")
+
+        y1, y2, y3, y4 = st.columns(4)
+
+        y1.metric("Good Product Yield", f"{good_product_yield_pct:.2f}%")
+        y2.metric("Good Product Loss", f"{good_product_loss_pct:.2f}%")
+        y3.metric("Est. Good in Input", f"{estimated_good_in_input_g:.2f} g")
+        y4.metric("Est. Good in Accept", f"{estimated_good_in_accept_g:.2f} g")
+
+        y5, y6, y7, y8 = st.columns(4)
+
+        y5.metric("Input Good %", f"{input_good_pct:.2f}%")
+        y6.metric("Input Defect %", f"{input_defect_pct:.2f}%")
+        y7.metric("Accept Good %", f"{accept_good_pct:.2f}%")
+        y8.metric("Reject Good %", f"{reject_good_pct:.2f}%")
+
+        pass_notes = st.text_area("Pass Notes", key=f"pass_notes_{pass_id}")
+
+        for row in export_rows:
+            if row["Pass Name"] == pass_name:
+                row["Pass Notes"] = pass_notes
+                row["Good Product Yield %"] = good_product_yield_pct
+                row["Good Product Loss %"] = good_product_loss_pct
+                row["Estimated Good in Input g"] = estimated_good_in_input_g
+                row["Estimated Good in Accept g"] = estimated_good_in_accept_g
+                row["Estimated Good Lost to Reject g"] = estimated_good_lost_to_reject_g
 
 # -----------------------------
 # Summary + Download
