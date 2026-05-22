@@ -171,80 +171,92 @@ for p in st.session_state.passes:
 
         stream_names = ["Input", "Accept", "Reject"]
 
-        for tab, stream in zip(tabs, stream_names):
-            with tab:
-                st.write(f"{stream} Stream")
+        stream_summaries = {}
 
-                defect_rows = []
+for tab, stream in zip(tabs, stream_names):
+    with tab:
+        st.write(f"{stream} Stream")
 
-                for i in range(1, 8):
-                    d1, d2 = st.columns([3, 1])
+        defect_rows = []
 
-                    with d1:
-                        defect_name = st.text_input(
-                            f"Defect / Class {i}",
-                            value="Accept" if i == 1 else "",
-                            key=f"{stream}_defect_name_{pass_id}_{i}"
-                        )
+        for i in range(1, 8):
+            d1, d2 = st.columns([3, 1])
 
-                    with d2:
-                        defect_weight = st.number_input(
-                            "Weight (g)",
-                            min_value=0.0,
-                            step=0.01,
-                            key=f"{stream}_defect_weight_{pass_id}_{i}"
-                        )
+            with d1:
+                defect_name = st.text_input(
+                    f"Defect / Class {i}",
+                    value="Accept" if i == 1 else "",
+                    key=f"{stream}_defect_name_{pass_id}_{i}"
+                )
 
-                    if defect_name or defect_weight > 0:
-                        defect_rows.append({
-                            "defect": defect_name,
-                            "weight_g": defect_weight
-                        })
+            with d2:
+                defect_weight = st.number_input(
+                    "Weight (g)",
+                    min_value=0.0,
+                    step=0.01,
+                    key=f"{stream}_defect_weight_{pass_id}_{i}"
+                )
 
-                total_sample_weight = sum(row["weight_g"] for row in defect_rows)
+            if defect_name or defect_weight > 0:
+                defect_rows.append({
+                    "defect": defect_name,
+                    "weight_g": defect_weight
+                })
 
-                st.write(f"Total Sample Weight: **{total_sample_weight:.2f} g**")
+        total_sample_weight = sum(row["weight_g"] for row in defect_rows)
 
-                for row in defect_rows:
-                    percent = (
-                        row["weight_g"] / total_sample_weight * 100
-                        if total_sample_weight
-                        else 0
-                    )
-
-                    export_rows.append({
-                        "Customer": customer,
-                        "Product": product,
-                        "Machine": machine,
-                        "Calibration": calibration,
-                        "Operator": operator,
-                        "Date": demo_date,
-                        "General Notes": general_notes,
-                        "Pass Name": pass_name,
-                        "Pass Type": pass_type,
-                        "Input Weight g": input_weight,
-                        "Accept Weight g": accept_weight,
-                        "Reject Weight g": reject_weight,
-                        "Runtime sec": runtime_sec,
-                        "Total Output g": total_output,
-                        "Mass Balance %": mass_balance_pct,
-                        "Accept Yield %": accept_yield_pct,
-                        "Reject %": reject_pct,
-                        "Throughput lb/hr": throughput_lbs_hr,
-                        "Stream": stream,
-                        "Defect / Class": row["defect"],
-                        "Weight g": row["weight_g"],
-                        "Percent of Sample": percent,
-                    })
-
-        pass_notes = st.text_area(
-            "Pass Notes",
-            key=f"pass_notes_{pass_id}"
+        good_weight = sum(
+            row["weight_g"]
+            for row in defect_rows
+            if row["defect"].strip().lower() == "accept"
         )
 
-        for row in export_rows:
-            if row["Pass Name"] == pass_name:
-                row["Pass Notes"] = pass_notes
+        good_pct = (
+            good_weight / total_sample_weight * 100
+            if total_sample_weight
+            else 0
+        )
+
+        stream_summaries[stream] = {
+            "total_sample_weight": total_sample_weight,
+            "good_weight": good_weight,
+            "good_pct": good_pct
+        }
+
+        st.write(f"Total Sample Weight: **{total_sample_weight:.2f} g**")
+        st.write(f"Good Product %: **{good_pct:.2f}%**")
+
+        for row in defect_rows:
+            percent = (
+                row["weight_g"] / total_sample_weight * 100
+                if total_sample_weight
+                else 0
+            )
+
+            export_rows.append({
+                "Customer": customer,
+                "Product": product,
+                "Machine": machine,
+                "Calibration": calibration,
+                "Operator": operator,
+                "Date": demo_date,
+                "General Notes": general_notes,
+                "Pass Name": pass_name,
+                "Pass Type": pass_type,
+                "Input Weight g": input_weight,
+                "Accept Weight g": accept_weight,
+                "Reject Weight g": reject_weight,
+                "Runtime sec": runtime_sec,
+                "Total Output g": total_output,
+                "Mass Balance %": mass_balance_pct,
+                "Accept Yield %": accept_yield_pct,
+                "Reject %": reject_pct,
+                "Throughput lb/hr": throughput_lbs_hr,
+                "Stream": stream,
+                "Defect / Class": row["defect"],
+                "Weight g": row["weight_g"],
+                "Percent of Sample": percent,
+            })
 
 
 # -----------------------------
