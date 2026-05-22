@@ -151,7 +151,7 @@ for p in st.session_state.passes:
 
         
         capacity_weight = (input_weight * 0.00220462) if input_weight else 0
-        throughput_lbs_hr = ((capacity_weight / runtime_sec) * 3600 * 0.00220462) if runtime_sec else 0
+        throughput_lbs_hr = ((capacity_weight / runtime_sec) * 3600) if runtime_sec else 0
 
         total_output = accept_weight + reject_weight
         mass_balance_pct = (total_output / input_weight * 100) if input_weight else 0
