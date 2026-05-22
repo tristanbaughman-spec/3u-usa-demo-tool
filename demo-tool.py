@@ -119,7 +119,7 @@ for p in st.session_state.passes:
 
         with c1:
             input_weight = st.number_input(
-                "Input Weight (lb)",
+                "Input Weight (g)",
                 min_value=0.0,
                 step=0.01,
                 key=f"input_weight_{pass_id}"
@@ -127,7 +127,7 @@ for p in st.session_state.passes:
 
         with c2:
             accept_weight = st.number_input(
-                "Accept Weight (lb)",
+                "Accept Weight (g)",
                 min_value=0.0,
                 step=0.01,
                 key=f"accept_weight_{pass_id}"
@@ -135,7 +135,7 @@ for p in st.session_state.passes:
 
         with c3:
             reject_weight = st.number_input(
-                "Reject Weight (lb)",
+                "Reject Weight (g)",
                 min_value=0.0,
                 step=0.01,
                 key=f"reject_weight_{pass_id}"
