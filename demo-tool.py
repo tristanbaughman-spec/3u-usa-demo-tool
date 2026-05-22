@@ -3,20 +3,19 @@ import pandas as pd
 from datetime import date
 
 st.set_page_config(
-    page_title="Optical Sorting Demo App",
+    page_title="3U USA Demo Tool",
     layout="wide"
 )
 
 title_col, logo_col = st.columns([5, 1])
 
 with title_col:
-    st.title("MV360 & 3U USA Analysis Dashboard")
+    st.title("3U USA Demo Tool")
 
 with logo_col:
     try:
         st.image("assets/3U-Vision-USAdarksilhouette.png", width=200)
 
-st.title("Optical Sorting Demo Report")
 
 # -----------------------------
 # Session State
