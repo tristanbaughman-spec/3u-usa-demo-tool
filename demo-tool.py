@@ -153,7 +153,7 @@ for p in st.session_state.passes:
         mass_balance_pct = (total_output / input_weight * 100) if input_weight else 0
         accept_yield_pct = (accept_weight / input_weight * 100) if input_weight else 0
         reject_pct = (reject_weight / input_weight * 100) if input_weight else 0
-        capacity_lbs_hr = (input_weight / runtime_min * 60) if runtime_min else 0
+        capacity_lbs_hr = (input_weight * 0.00220462 / runtime_min * 60) if runtime_min else 0
 
         m1, m2, m3, m4 = st.columns(4)
 
@@ -219,11 +219,11 @@ for p in st.session_state.passes:
                         "General Notes": general_notes,
                         "Pass Name": pass_name,
                         "Pass Type": pass_type,
-                        "Input Weight lb": input_weight,
-                        "Accept Weight lb": accept_weight,
-                        "Reject Weight lb": reject_weight,
+                        "Input Weight g": input_weight,
+                        "Accept Weight g": accept_weight,
+                        "Reject Weight g": reject_weight,
                         "Runtime min": runtime_min,
-                        "Total Output lb": total_output,
+                        "Total Output g": total_output,
                         "Mass Balance %": mass_balance_pct,
                         "Accept Yield %": accept_yield_pct,
                         "Reject %": reject_pct,
