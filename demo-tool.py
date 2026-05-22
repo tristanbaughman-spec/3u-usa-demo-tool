@@ -241,30 +241,6 @@ for p in st.session_state.passes:
                         else 0
                     )
 
-                    export_rows.append({
-                        "Customer": customer,
-                        "Product": product,
-                        "Machine": machine,
-                        "Calibration": calibration,
-                        "Operator": operator,
-                        "Date": demo_date,
-                        "General Notes": general_notes,
-                        "Pass Name": pass_name,
-                        "Pass Type": pass_type,
-                        "Input Weight g": input_weight,
-                        "Accept Weight g": accept_weight,
-                        "Reject Weight g": reject_weight,
-                        "Runtime sec": runtime_sec,
-                        "Total Output g": total_output,
-                        "Mass Balance %": mass_balance_pct,
-                        "Accept Stream Yield %": accept_stream_yield_pct,
-                        "Reject Stream %": reject_stream_pct,
-                        "Throughput lb/hr": throughput_lbs_hr,
-                        "Stream": stream,
-                        "Defect / Class": row["defect"],
-                        "Weight g": row["weight_g"],
-                        "Percent of Sample": percent,
-                    })
 
         # -----------------------------
 # Yield Analysis
@@ -327,6 +303,47 @@ else:
 # -----------------------------
 # Summary + Download
 # -----------------------------
+export_rows.append({
+    "Customer": customer,
+    "Product": product,
+    "Machine": machine,
+    "Calibration": calibration,
+    "Operator": operator,
+    "Date": demo_date,
+
+    "Pass Name": pass_name,
+    "Pass Type": pass_type,
+
+    "Input Weight g": input_weight,
+    "Accept Weight g": accept_weight,
+    "Reject Weight g": reject_weight,
+
+    "Runtime sec": runtime_sec,
+    "Throughput lb/hr": throughput_lbs_hr,
+
+    "Mass Balance %": mass_balance_pct,
+    "Accept Stream Yield %": accept_stream_yield_pct,
+    "Reject Stream %": reject_stream_pct,
+
+    "Input Good %": input_good_pct,
+    "Input Defect %": input_defect_pct,
+
+    "Accept Good %": accept_good_pct,
+    "Reject Good %": reject_good_pct,
+
+    "Estimated Accept Stream g": estimated_accept_stream_g,
+    "Estimated Reject Stream g": estimated_reject_stream_g,
+
+    "Estimated Good in Input g": estimated_good_in_input_g,
+    "Estimated Good in Accept g": estimated_good_in_accept_g,
+    "Estimated Good Lost g": estimated_good_lost_to_reject_g,
+
+    "Good Product Yield %": good_product_yield_pct,
+    "Good Product Loss %": good_product_loss_pct,
+    "Unaccounted %": unaccounted_pct,
+
+    "Pass Notes": pass_notes,
+})
 
 st.divider()
 st.header("Export Summary")
